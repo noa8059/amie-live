@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8"/>
-  <title>Amie 系列代購系統（測試版）</title>
+  <title>蒼野：超陽春開團系統 </title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: "Segoe UI", Tahoma, sans-serif; background: #f0f2f5; color: #333; padding: 2rem; display: flex; justify-content: center; }
@@ -28,7 +28,7 @@
 </head>
 <body>
   <div class="container">
-    <header><h1>Amie 系列代購（測試版）</h1></header>
+    <header><h1>蒼野：超陽春開團系統 </h1></header>
     <main><div id="root">載入中...</div></main>
   </div>
 
@@ -62,8 +62,8 @@
       html += `</tbody></table>`;
 
       html += `<h2>Amie 系列代購</h2>
-        <div class="field"><input id="name" type="text" placeholder="稱呼" /></div>
-        <div class="field"><input id="contact" type="text" placeholder="噗浪或臉書帳號" /></div>
+        <div class="field"><input id="name" type="text" placeholder="暱稱" /></div>
+        <div class="field"><input id="contact" type="text" placeholder="噗浪帳號或臉書網址" /></div>
         <h3>徽章（140元）</h3>
         <div class="grid">` +
           roles.map(r => `
@@ -80,17 +80,17 @@
               <span class="remain">剩餘 ${rem.acrylic[r]}</span>
             </label>`).join("") +
         `</div>
-        <button id="submit">送出訂單</button>
+        <button id="submit">我要喊單</button>
         <div id="message"></div>
         <hr/>
-        <h3>📦 下單紀錄</h3>
+        <h3>📦 喊單紀錄</h3>
         <div id="orders"></div>`;
 
       document.getElementById("root").innerHTML = html;
 
       document.getElementById("submit").onclick = () => {
-        // 確認送出
-        if (!confirm("是否確認送出？")) return;
+        // 確認喊單
+        if (!confirm("是否確認喊單？")) return;
         // 讀取輸入
         const name = document.getElementById("name").value.trim();
         const contact = document.getElementById("contact").value.trim();
@@ -103,11 +103,11 @@
         });
         // 熱門角色提示
         if (badge["18"] || badge["27"] || acrylic["18"] || acrylic["27"]) {
-          if (!confirm("⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。仍要送出嗎？")) return;
+          if (!confirm("⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。仍要喊單嗎？")) return;
         }
         // 成功
         state.submitted.push({ name, contact, badge, acrylic });
-        alert("✅ 送出成功！");
+        alert("✅ 喊單成功！");
         render();
         renderOrders();
       };
