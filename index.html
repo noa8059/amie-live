@@ -2,61 +2,128 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>Amie 系列代購系統</title>
+  <title>Amie 系列代購系統（測試版）</title>
   <style>
-    body { 
-      font-family: sans-serif; 
-      background: #f9f9f9; 
-      padding: 2rem; 
-      text-align: center; 
+    /* 全局重置 */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
     }
-    table { 
-      margin: 0 auto 1rem; 
-      border-collapse: collapse; 
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
     }
-    th, td { 
-      border: 1px solid #ccc; 
-      padding: 0.5rem 1rem; 
+    header {
+      background: #4a90e2;
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem;
     }
-    /* 放大文字輸入框 */
-    input#name,
-    input#contact {
-      display: block;
-      margin: 0.5rem auto;
+    header h1 {
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+    }
+    main {
+      padding: 1.5rem;
+    }
+    h2, h3 {
+      margin-bottom: 0.75rem;
+      color: #4a90e2;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .grid label {
+      display: flex;
+      flex-direction: column;
+      background: #fafafa;
+      padding: 0.75rem;
+      border: 1px solid #ececec;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .grid input[type="number"] {
+      margin-top: 0.5rem;
+      padding: 0.4rem;
+      font-size: 1rem;
+      width: 100%;
+    }
+    .remain {
+      margin-top: 0.25rem;
+      font-size: 0.8rem;
+      color: #888;
+    }
+    .field {
+      margin-bottom: 1rem;
+    }
+    .field input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #4a90e2;
+      color: #fff;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    button:hover { background: #357ab8; }
+    #message {
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: bold;
+      color: #e67e22;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
       padding: 0.5rem;
-      width: 200px;      /* 欄位寬度可自行調整 */
-      font-size: 1rem;
+      text-align: center;
     }
-    /* 保持數字欄位較小 */
-    input[type="number"] { 
-      margin: 0 0.25rem; 
-      width: 3rem; 
-      padding: 0.25rem; 
-    }
-    .remain { 
-      font-size: 0.9rem; 
-      color: #555; 
-      margin-left: 0.5rem; 
-    }
-    button { 
-      padding: 0.5rem 1rem; 
-      background: #333; 
-      color: #fff; 
-      border: none; 
-      cursor: pointer; 
-      font-size: 1rem;
-    }
-    #message { 
-      margin-top: 1rem; 
-      font-weight: bold; 
-    }
-    #orders div { 
-      margin-bottom: 1rem; 
+    th { background: #f7f9fc; }
+    #orders div {
+      padding: 0.75rem;
+      border: 1px solid #ececec;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      background: #fafafa;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
-  <div id="root">載入中...</div>
+  <div class="container">
+    <header>
+      <h1>Amie 系列代購（測試版）</h1>
+    </header>
+    <main>
+      <div id="root">載入中...</div>
+    </main>
+  </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -73,8 +140,8 @@
         });
         state.submitted.forEach(o => {
           roles.forEach(r => {
-            if(o.badge[r]) rem.badge[r] -= o.badge[r];
-            if(o.acrylic[r]) rem.acrylic[r] -= o.acrylic[r];
+            if (o.badge[r]) rem.badge[r] -= o.badge[r];
+            if (o.acrylic[r]) rem.acrylic[r] -= o.acrylic[r];
           });
         });
         return rem;
@@ -82,34 +149,46 @@
 
       function render() {
         const rem = computeRemaining();
-        // 狀況表格
-        let table = `<h3>目前下單狀況（剩餘數量）</h3>
+
+        // 下單狀況表格
+        let html = `<h2>目前下單狀況</h2>
           <table><thead>
-          <tr><th>角色</th><th>徽章剩餘</th><th>壓克力卡剩餘</th></tr>
+            <tr><th>角色</th><th>徽章剩餘</th><th>壓克力卡剩餘</th></tr>
           </thead><tbody>`;
         roles.forEach(r => {
-          table += `<tr><td>${r}</td>
+          html += `<tr>
+            <td>${r}</td>
             <td>${rem.badge[r]}</td>
-            <td>${rem.acrylic[r]}</td></tr>`;
+            <td>${rem.acrylic[r]}</td>
+          </tr>`;
         });
-        table += `</tbody></table>`;
+        html += `</tbody></table>`;
 
-        // 表單
-        let form = `
+        // 表單區塊
+        html += `
           <h2>Amie 系列代購</h2>
-          <input placeholder="稱呼" id="name" />
-          <input placeholder="噗浪或臉書帳號" id="contact" />
+          <div class="field">
+            <input id="name" type="text" placeholder="稱呼" />
+          </div>
+          <div class="field">
+            <input id="contact" type="text" placeholder="噗浪或臉書帳號" />
+          </div>
           <h3>徽章（140元）</h3>
-          ${roles.map(r => `<label>${r}
-            <input type="number" min="0" id="badge-${r}" value="0" />
-            <span class="remain">剩餘${rem.badge[r]}</span>
-          </label>`).join("")}
+          <div class="grid">
+            ${roles.map(r => `
+              <label>${r}
+                <input type="number" min="0" id="badge-${r}" value="0" />
+                <span class="remain">剩餘 ${rem.badge[r]}</span>
+              </label>`).join("")}
+          </div>
           <h3>壓克力卡（145元）</h3>
-          ${roles.map(r => `<label>${r}
-            <input type="number" min="0" id="acrylic-${r}" value="0" />
-            <span class="remain">剩餘${rem.acrylic[r]}</span>
-          </label>`).join("")}
-          <br/><br/>
+          <div class="grid">
+            ${roles.map(r => `
+              <label>${r}
+                <input type="number" min="0" id="acrylic-${r}" value="0" />
+                <span class="remain">剩餘 ${rem.acrylic[r]}</span>
+              </label>`).join("")}
+          </div>
           <button id="submit">送出訂單</button>
           <div id="message"></div>
           <hr/>
@@ -117,8 +196,9 @@
           <div id="orders"></div>
         `;
 
-        app.innerHTML = table + form;
+        app.innerHTML = html;
 
+        // 綁定送出事件
         document.getElementById("submit").onclick = () => {
           state.name = document.getElementById("name").value.trim();
           state.contact = document.getElementById("contact").value.trim();
@@ -126,8 +206,8 @@
           roles.forEach(r => {
             const b = parseInt(document.getElementById("badge-"+r).value) || 0;
             const a = parseInt(document.getElementById("acrylic-"+r).value) || 0;
-            if(b) state.badge[r] = b;
-            if(a) state.acrylic[r] = a;
+            if (b) state.badge[r] = b;
+            if (a) state.acrylic[r] = a;
           });
           const sel = Object.keys(state.badge).concat(Object.keys(state.acrylic));
           document.getElementById("message").innerText =
@@ -135,21 +215,24 @@
               ? "⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。"
               : "✅ 訂單已送出！";
           state.submitted.push({
-            name:state.name, contact:state.contact,
-            badge:{...state.badge}, acrylic:{...state.acrylic}
+            name: state.name,
+            contact: state.contact,
+            badge: { ...state.badge },
+            acrylic: { ...state.acrylic }
           });
-          render();       // 更新表格與剩餘數
+          render();
           renderOrders();
         };
       }
 
       function renderOrders() {
         const c = document.getElementById("orders");
-        c.innerHTML = state.submitted.map(o=>{
-          return `<div><strong>${o.name}</strong>（${o.contact}）<br/>
+        c.innerHTML = state.submitted.map(o => `
+          <div>
+            <strong>${o.name}</strong>（${o.contact}）<br/>
             徽章：${JSON.stringify(o.badge)}<br/>
-            壓克力卡：${JSON.stringify(o.acrylic)}</div>`;
-        }).join("");
+            壓克力卡：${JSON.stringify(o.acrylic)}
+          </div>`).join("");
       }
 
       render();
