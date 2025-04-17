@@ -34,14 +34,22 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // 请替换成你部署的 Apps Script exec URL（不要带 <>）
+    // 1. 請把下面這行改成你自己的 Apps Script exec URL，不要加 < >
     const API = "https://script.google.com/macros/s/AKfycbzooA4iBnHRgL4DxCXcm54DuDpVW6obyyxl4zxC8HijF9wJmLxzL-ztvfz6a_o6equK/exec";
     const roles = ["27","R","18","69"];
     const state = { submitted: [] };
 
-    // 1. 读既有订单
-    fetch(API)
-      .then(res => res.json())
+    // 顯示錯誤，防止永遠卡在載入中
+    function showError(msg) {
+      document.getElementById("root").innerHTML = `<div style="color:red; text-align:center;">錯誤：${msg}</div>`;
+    }
+
+    // 1. 從伺服器讀取既有訂單
+    fetch(API, { mode: 'cors' })
+      .then(res => {
+        if (!res.ok) throw new Error('fetch 失敗，狀態 ' + res.status);
+        return res.json();
+      })
       .then(data => {
         state.submitted = data.map(o => ({
           name: o.Name,
@@ -50,15 +58,16 @@
           acrylic: { "27":+o.Acrylic_27, "R":+o.Acrylic_R, "18":+o.Acrylic_18, "69":+o.Acrylic_69 }
         }));
         render();
-      });
+      })
+      .catch(err => showError(err.message));
 
     function computeRemaining() {
-      const rem = { badge: {}, acrylic: {} };
+      const rem = { badge:{}, acrylic:{} };
       roles.forEach(r => { rem.badge[r] = 4; rem.acrylic[r] = 2; });
       state.submitted.forEach(o => {
         roles.forEach(r => {
-          rem.badge[r] -= o.badge[r] || 0;
-          rem.acrylic[r] -= o.acrylic[r] || 0;
+          rem.badge[r] -= o.badge[r]||0;
+          rem.acrylic[r] -= o.acrylic[r]||0;
         });
       });
       return rem;
@@ -108,8 +117,8 @@
         const contact = document.getElementById("contact").value.trim();
         const badge = {}, acrylic = {};
         roles.forEach(r => {
-          badge[r] = parseInt(document.getElementById("badge-"+r).value) || 0;
-          acrylic[r] = parseInt(document.getElementById("acrylic-"+r).value) || 0;
+          badge[r] = parseInt(document.getElementById("badge-"+r).value)||0;
+          acrylic[r] = parseInt(document.getElementById("acrylic-"+r).value)||0;
         });
         if ((badge["18"]||badge["27"]||acrylic["18"]||acrylic["27"])
             && !confirm("⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。仍要喊單嗎？"))
@@ -118,15 +127,18 @@
         // 2. POST 新訂單
         fetch(API, {
           method: "POST",
+          mode: 'cors',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, contact, badge, acrylic })
         })
-        .then(() => alert("✅ 喊單成功！"))
-        .then(() => {
+        .then(res => {
+          if (!res.ok) throw new Error("POST 失敗，狀態 " + res.status);
+          alert("✅ 喊單成功！");
           state.submitted.push({ name, contact, badge, acrylic });
           render();
           renderOrders();
-        });
+        })
+        .catch(err => alert("錯誤：" + err.message));
       };
     }
 
