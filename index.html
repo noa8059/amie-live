@@ -2,49 +2,63 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8"/>
-  <title>蒼野：超陽春開團系統 </title>
+  <title>蒼野：超陽春開團系統</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Segoe UI", Tahoma, sans-serif; background: #f0f2f5; color: #333; padding: 2rem; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 600px; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
-    header { background: #4a90e2; color: #fff; text-align: center; padding: 1.5rem; }
-    header h1 { font-size: 1.5rem; letter-spacing: 1px; }
-    main { padding: 1.5rem; }
-    h2, h3 { margin-bottom: 0.75rem; color: #4a90e2; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
-    .grid label { display: flex; flex-direction: column; background: #fafafa; padding: 0.75rem; border: 1px solid #ececec; border-radius: 4px; font-size: 0.9rem; text-align: center; }
-    .grid input[type="number"] { margin-top: 0.5rem; padding: 0.4rem; font-size: 1rem; width: 100%; }
-    .remain { margin-top: 0.25rem; font-size: 0.8rem; color: #888; }
-    .field { margin-bottom: 1rem; }
-    .field input { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
-    button { width: 100%; padding: 0.75rem; background: #4a90e2; color: #fff; font-size: 1rem; border: none; border-radius: 4px; cursor: pointer; margin-top: 0.5rem; }
-    button:hover { background: #357ab8; }
-    #message { margin-top: 1rem; text-align: center; font-weight: bold; color: #e67e22; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-    th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: center; }
-    th { background: #f7f9fc; }
-    #orders div { padding: 0.75rem; border: 1px solid #ececec; border-radius: 4px; margin-bottom: 0.5rem; background: #fafafa; font-size: 0.9rem; }
+    /* 同上次測試版排版 */
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:"Segoe UI",Tahoma,sans-serif; background:#f0f2f5; color:#333; padding:2rem; display:flex; justify-content:center;}
+    .container{width:100%;max-width:600px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.05);overflow:hidden;}
+    header{background:#4a90e2;color:#fff;text-align:center;padding:1.5rem;}
+    header h1{font-size:1.5rem;letter-spacing:1px;}
+    main{padding:1.5rem;}
+    h2,h3{margin-bottom:0.75rem;color:#4a90e2;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.5rem;margin-bottom:1rem;}
+    .grid label{display:flex;flex-direction:column;background:#fafafa;padding:0.75rem;border:1px solid #ececec;border-radius:4px;font-size:0.9rem;text-align:center;}
+    .grid input[type="number"]{margin-top:0.5rem;padding:0.4rem;font-size:1rem;width:100%;}
+    .remain{margin-top:0.25rem;font-size:0.8rem;color:#888;}
+    .field{margin-bottom:1rem;}
+    .field input{width:100%;padding:0.75rem;font-size:1rem;border:1px solid #ccc;border-radius:4px;}
+    button{width:100%;padding:0.75rem;background:#4a90e2;color:#fff;font-size:1rem;border:none;border-radius:4px;cursor:pointer;margin-top:0.5rem;}
+    button:hover{background:#357ab8;}
+    #message{margin-top:1rem;text-align:center;font-weight:bold;color:#e67e22;}
+    table{width:100%;border-collapse:collapse;margin-bottom:1rem;}
+    th,td{border:1px solid #ddd;padding:0.5rem;text-align:center;}
+    th{background:#f7f9fc;}
+    #orders div{padding:0.75rem;border:1px solid #ececec;border-radius:4px;margin-bottom:0.5rem;background:#fafafa;font-size:0.9rem;}
   </style>
 </head>
 <body>
   <div class="container">
-    <header><h1>蒼野：超陽春開團系統 </h1></header>
+    <header><h1>蒼野：超陽春開團系統</h1></header>
     <main><div id="root">載入中...</div></main>
   </div>
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const API = "<https://script.google.com/macros/s/AKfycbzooA4iBnHRgL4DxCXcm54DuDpVW6obyyxl4zxC8HijF9wJmLxzL-ztvfz6a_o6equK/exec>";
     const roles = ["27","R","18","69"];
-    const boxLimits = { badge: 4, acrylic: 2 };
     const state = { submitted: [] };
 
+    // 1. 從伺服器讀取既有訂單
+    fetch(API)
+      .then(r => r.json())
+      .then(data => {
+        state.submitted = data.map(o => ({
+          name: o.Name,
+          contact: o.Contact,
+          badge: { "27":+o.Badge_27, "R":+o.Badge_R, "18":+o.Badge_18, "69":+o.Badge_69 },
+          acrylic: { "27":+o.Acrylic_27, "R":+o.Acrylic_R, "18":+o.Acrylic_18, "69":+o.Acrylic_69 }
+        }));
+        render();
+      });
+
     function computeRemaining() {
-      const rem = { badge: {}, acrylic: {} };
-      roles.forEach(r => { rem.badge[r] = boxLimits.badge; rem.acrylic[r] = boxLimits.acrylic; });
+      const rem = { badge:{}, acrylic:{} };
+      roles.forEach(r => { rem.badge[r]=4; rem.acrylic[r]=2; });
       state.submitted.forEach(o => {
         roles.forEach(r => {
-          if (o.badge[r]) rem.badge[r] -= o.badge[r];
-          if (o.acrylic[r]) rem.acrylic[r] -= o.acrylic[r];
+          rem.badge[r] -= o.badge[r]||0;
+          rem.acrylic[r] -= o.acrylic[r]||0;
         });
       });
       return rem;
@@ -52,7 +66,7 @@
 
     function render() {
       const rem = computeRemaining();
-      let html = `<h2>目前喊單狀況</h2>
+      let html = `<h2>目前下單狀況</h2>
         <table><thead>
           <tr><th>角色</th><th>徽章剩餘</th><th>壓克力卡剩餘</th></tr>
         </thead><tbody>`;
@@ -89,27 +103,27 @@
       document.getElementById("root").innerHTML = html;
 
       document.getElementById("submit").onclick = () => {
-        // 確認喊單
         if (!confirm("是否確認喊單？")) return;
-        // 讀取輸入
         const name = document.getElementById("name").value.trim();
         const contact = document.getElementById("contact").value.trim();
-        const badge = {}, acrylic = {};
+        const badge={}, acrylic={};
         roles.forEach(r => {
-          const b = parseInt(document.getElementById("badge-" + r).value) || 0;
-          const a = parseInt(document.getElementById("acrylic-" + r).value) || 0;
-          if (b) badge[r] = b;
-          if (a) acrylic[r] = a;
+          badge[r] = parseInt(document.getElementById("badge-"+r).value)||0;
+          acrylic[r] = parseInt(document.getElementById("acrylic-"+r).value)||0;
         });
-        // 熱門角色提示
-        if (badge["18"] || badge["27"] || acrylic["18"] || acrylic["27"]) {
-          if (!confirm("⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。仍要喊單嗎？")) return;
-        }
-        // 成功
-        state.submitted.push({ name, contact, badge, acrylic });
-        alert("✅ 喊單成功！");
-        render();
-        renderOrders();
+        if ((badge["18"]||badge["27"]||acrylic["18"]||acrylic["27"])
+            && !confirm("⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。仍要喊單嗎？"))
+          return;
+        // 2. POST 新訂單
+        fetch(API, {
+          method: "POST",
+          body: JSON.stringify({ name, contact, badge, acrylic })
+        }).then(()=> alert("✅ 喊單成功！"))
+          .then(()=> {
+            state.submitted.push({ name, contact, badge, acrylic });
+            render();
+            renderOrders();
+          });
       };
     }
 
@@ -121,8 +135,6 @@
           壓克力卡：${JSON.stringify(o.acrylic)}</div>`
       ).join("");
     }
-
-    render();
   });
   </script>
 </body>
