@@ -4,9 +4,8 @@
   <meta charset="UTF-8"/>
   <title>蒼野：超陽春開團系統</title>
   <style>
-    /* 同上次測試版排版 */
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:"Segoe UI",Tahoma,sans-serif; background:#f0f2f5; color:#333; padding:2rem; display:flex; justify-content:center;}
+    body{font-family:"Segoe UI",Tahoma,sans-serif;background:#f0f2f5;color:#333;padding:2rem;display:flex;justify-content:center;}
     .container{width:100%;max-width:600px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.05);overflow:hidden;}
     header{background:#4a90e2;color:#fff;text-align:center;padding:1.5rem;}
     header h1{font-size:1.5rem;letter-spacing:1px;}
@@ -35,13 +34,14 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const API = "<https://script.google.com/macros/s/AKfycbzooA4iBnHRgL4DxCXcm54DuDpVW6obyyxl4zxC8HijF9wJmLxzL-ztvfz6a_o6equK/exec>";
+    // 请替换成你部署的 Apps Script exec URL（不要带 <>）
+    const API = "https://script.google.com/macros/s/AKfycbzooA4iBnHRgL4DxCXcm54DuDpVW6obyyxl4zxC8HijF9wJmLxzL-ztvfz6a_o6equK/exec";
     const roles = ["27","R","18","69"];
     const state = { submitted: [] };
 
-    // 1. 從伺服器讀取既有訂單
+    // 1. 读既有订单
     fetch(API)
-      .then(r => r.json())
+      .then(res => res.json())
       .then(data => {
         state.submitted = data.map(o => ({
           name: o.Name,
@@ -53,12 +53,12 @@
       });
 
     function computeRemaining() {
-      const rem = { badge:{}, acrylic:{} };
-      roles.forEach(r => { rem.badge[r]=4; rem.acrylic[r]=2; });
+      const rem = { badge: {}, acrylic: {} };
+      roles.forEach(r => { rem.badge[r] = 4; rem.acrylic[r] = 2; });
       state.submitted.forEach(o => {
         roles.forEach(r => {
-          rem.badge[r] -= o.badge[r]||0;
-          rem.acrylic[r] -= o.acrylic[r]||0;
+          rem.badge[r] -= o.badge[r] || 0;
+          rem.acrylic[r] -= o.acrylic[r] || 0;
         });
       });
       return rem;
@@ -106,24 +106,27 @@
         if (!confirm("是否確認喊單？")) return;
         const name = document.getElementById("name").value.trim();
         const contact = document.getElementById("contact").value.trim();
-        const badge={}, acrylic={};
+        const badge = {}, acrylic = {};
         roles.forEach(r => {
-          badge[r] = parseInt(document.getElementById("badge-"+r).value)||0;
-          acrylic[r] = parseInt(document.getElementById("acrylic-"+r).value)||0;
+          badge[r] = parseInt(document.getElementById("badge-"+r).value) || 0;
+          acrylic[r] = parseInt(document.getElementById("acrylic-"+r).value) || 0;
         });
         if ((badge["18"]||badge["27"]||acrylic["18"]||acrylic["27"])
             && !confirm("⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。仍要喊單嗎？"))
           return;
+
         // 2. POST 新訂單
         fetch(API, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, contact, badge, acrylic })
-        }).then(()=> alert("✅ 喊單成功！"))
-          .then(()=> {
-            state.submitted.push({ name, contact, badge, acrylic });
-            render();
-            renderOrders();
-          });
+        })
+        .then(() => alert("✅ 喊單成功！"))
+        .then(() => {
+          state.submitted.push({ name, contact, badge, acrylic });
+          render();
+          renderOrders();
+        });
       };
     }
 
