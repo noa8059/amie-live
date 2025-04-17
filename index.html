@@ -4,71 +4,115 @@
   <meta charset="UTF-8" />
   <title>Amie 系列代購系統</title>
   <style>
-    body { font-family: sans-serif; background: #f9f9f9; text-align: center; padding: 2rem; }
-    input { margin: 0.25rem; padding: 0.25rem; }
-    button { padding: 0.5rem 1rem; font-size: 1rem; background: #333; color: #fff; border: none; }
-    hr { margin: 1.5rem 0; }
+    body { font-family: sans-serif; background: #f9f9f9; padding: 2rem; text-align: center; }
+    table { margin: 0 auto 1rem; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 1rem; }
+    input { margin: 0 0.25rem; width: 3rem; }
+    .remain { font-size: 0.9rem; color: #555; margin-left: 0.5rem; }
+    button { padding: 0.5rem 1rem; background: #333; color: #fff; border: none; cursor: pointer; }
+    #message { margin-top: 1rem; font-weight: bold; }
     #orders div { margin-bottom: 1rem; }
   </style>
 </head>
 <body>
   <div id="root">載入中...</div>
+
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const app = document.getElementById("root");
-      const roles = ["27", "R", "18", "69"];
-      const state = { name: "", contact: "", badge: {}, acrylic: {}, submittedOrders: [] };
+  document.addEventListener("DOMContentLoaded", function () {
+    const app = document.getElementById("root");
+    const roles = ["27","R","18","69"];
+    const boxLimits = { badge: 4, acrylic: 2 };
+    const state = { name:"", contact:"", badge:{}, acrylic:{}, submitted:[] };
 
-      function render() {
-        app.innerHTML = `
-          <h2>Amie 系列代購</h2>
-          <input placeholder="稱呼" id="name" /><br/>
-          <input placeholder="噗浪或臉書帳號" id="contact" /><br/><br/>
-          <h3>徽章（140元）</h3>
-          ${roles.map(role => `<label>${role}<input type="number" min="0" id="badge-${role}" /></label>`).join(" ")}
-          <h3>壓克力卡（145元）</h3>
-          ${roles.map(role => `<label>${role}<input type="number" min="0" id="acrylic-${role}" /></label>`).join(" ")}
-          <br/><br/>
-          <button id="submit">送出訂單</button>
-          <div id="message" style="margin-top:1rem;"></div>
-          <hr/>
-          <h3>📦 下單狀況：</h3>
-          <div id="orders"></div>
-        `;
-        document.getElementById("submit").onclick = () => {
-          state.name = document.getElementById("name").value.trim();
-          state.contact = document.getElementById("contact").value.trim();
-          state.badge = {}; state.acrylic = {};
-          roles.forEach(role => {
-            const b = parseInt(document.getElementById("badge-" + role).value) || 0;
-            const a = parseInt(document.getElementById("acrylic-" + role).value) || 0;
-            if (b) state.badge[role] = b;
-            if (a) state.acrylic[role] = a;
-          });
-          const selected = Object.keys(state.badge).concat(Object.keys(state.acrylic));
-          document.getElementById("message").innerText =
-            selected.includes("18") || selected.includes("27")
-              ? "⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。"
-              : "✅ 訂單已送出！";
-          state.submittedOrders.push({
-            name: state.name, contact: state.contact,
-            badge: { ...state.badge }, acrylic: { ...state.acrylic }
-          });
-          renderOrders();
-        };
-      }
+    function computeRemaining() {
+      const remaining = { badge:{}, acrylic:{} };
+      roles.forEach(r => {
+        remaining.badge[r] = boxLimits.badge;
+        remaining.acrylic[r] = boxLimits.acrylic;
+      });
+      state.submitted.forEach(o => {
+        roles.forEach(r => {
+          if(o.badge[r]) remaining.badge[r] -= o.badge[r];
+          if(o.acrylic[r]) remaining.acrylic[r] -= o.acrylic[r];
+        });
+      });
+      return remaining;
+    }
 
-      function renderOrders() {
-        const container = document.getElementById("orders");
-        container.innerHTML = state.submittedOrders.map(order => {
-          return `<div><strong>${order.name}</strong>（${order.contact}）<br/>
-            徽章：${JSON.stringify(order.badge)}<br/>
-            壓克力卡：${JSON.stringify(order.acrylic)}</div>`;
-        }).join("");
-      }
+    function render() {
+      const rem = computeRemaining();
+      // 狀況表格
+      let table = `<h3>目前下單狀況（剩餘數量）</h3>
+        <table><thead>
+        <tr><th>角色</th><th>徽章剩餘</th><th>壓克力卡剩餘</th></tr>
+        </thead><tbody>`;
+      roles.forEach(r => {
+        table += `<tr><td>${r}</td>
+          <td>${rem.badge[r]}</td>
+          <td>${rem.acrylic[r]}</td></tr>`;
+      });
+      table += `</tbody></table>`;
 
-      render();
-    });
+      // 表單
+      let form = `
+        <h2>Amie 系列代購</h2>
+        <input placeholder="稱呼" id="name" /><br/>
+        <input placeholder="噗浪或臉書帳號" id="contact" /><br/><br/>
+        <h3>徽章（140元）</h3>
+        ${roles.map(r => `<label>${r}
+          <input type="number" min="0" id="badge-${r}" value="0" />
+          <span class="remain">剩餘${rem.badge[r]}</span>
+        </label>`).join("")}
+        <h3>壓克力卡（145元）</h3>
+        ${roles.map(r => `<label>${r}
+          <input type="number" min="0" id="acrylic-${r}" value="0" />
+          <span class="remain">剩餘${rem.acrylic[r]}</span>
+        </label>`).join("")}
+        <br/><br/>
+        <button id="submit">送出訂單</button>
+        <div id="message"></div>
+        <hr/>
+        <h3>📦 下單紀錄</h3>
+        <div id="orders"></div>
+      `;
+
+      app.innerHTML = table + form;
+
+      document.getElementById("submit").onclick = () => {
+        state.name = document.getElementById("name").value.trim();
+        state.contact = document.getElementById("contact").value.trim();
+        state.badge = {}; state.acrylic = {};
+        roles.forEach(r => {
+          const b = parseInt(document.getElementById("badge-"+r).value) || 0;
+          const a = parseInt(document.getElementById("acrylic-"+r).value) || 0;
+          if(b) state.badge[r] = b;
+          if(a) state.acrylic[r] = a;
+        });
+        const sel = Object.keys(state.badge).concat(Object.keys(state.acrylic));
+        document.getElementById("message").innerText =
+          (sel.includes("18")||sel.includes("27"))
+            ? "⚠️ 您選擇了熱門角色，可能需要綁角，若需綁角將另行通知。"
+            : "✅ 訂單已送出！";
+        state.submitted.push({
+          name:state.name, contact:state.contact,
+          badge:{...state.badge}, acrylic:{...state.acrylic}
+        });
+        render(); // 重新渲染：更新表格、剩餘、紀錄
+        renderOrders();
+      };
+    }
+
+    function renderOrders() {
+      const c = document.getElementById("orders");
+      c.innerHTML = state.submitted.map(o=>{
+        return `<div><strong>${o.name}</strong>（${o.contact}）<br/>
+          徽章：${JSON.stringify(o.badge)}<br/>
+          壓克力卡：${JSON.stringify(o.acrylic)}</div>`;
+      }).join("");
+    }
+
+    render();
+  });
   </script>
 </body>
 </html>
